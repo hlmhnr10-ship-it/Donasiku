@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Donasiku Media Share Demo</title>
+<style>
+:root{--bg:#071426;--panel:#10243d;--line:#29435f;--mint:#42e6c2;--orange:#ff9d52;--muted:#9eb1c8}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(140deg,#061222,#102b45);color:#f4f8ff;font:15px system-ui,Arial}
+header{padding:17px 5%;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.logo{font-size:24px;font-weight:900}.logo span{color:var(--mint)}.pill{font-size:11px;color:var(--mint);border:1px solid #287968;padding:6px 10px;border-radius:20px}
+main{max-width:1050px;margin:26px auto;padding:0 15px}.intro{margin-bottom:18px}.intro h1{font-size:24px;margin:0 0 5px}.intro p{color:var(--muted);margin:0}
+.grid{display:grid;grid-template-columns:1.4fr .9fr;gap:17px}.panel{background:#10243deb;border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:16px}
+h2{font-size:17px;margin:0 0 13px}.screen{aspect-ratio:16/9;background:#030b15;border:1px solid #34506c;border-radius:13px;display:grid;place-items:center;overflow:hidden;color:var(--muted);text-align:center;padding:12px}.screen iframe{width:100%;height:100%;border:0}.screen .placeholder{max-width:340px}.bigplay{font-size:38px;color:var(--mint)}
+label{display:block;color:#b5c5d8;font-size:13px;margin:12px 0 6px}input,textarea{width:100%;background:#07182b;border:1px solid #38536e;color:white;padding:12px;border-radius:10px;font:inherit}textarea{min-height:70px;resize:vertical}.amounts{display:flex;gap:8px}.amounts button{flex:1;background:#183653;color:white;border:1px solid #38536e;padding:10px;border-radius:9px}
+button.primary{width:100%;background:linear-gradient(90deg,var(--mint),#76d9e8);color:#062137;border:0;border-radius:11px;padding:13px;font-weight:900;margin-top:14px}
+.small{font-size:12px;color:var(--muted);line-height:1.5}.alert{display:none;background:#382a21;border:1px solid var(--orange);border-radius:12px;padding:12px;margin-top:12px}.alert strong{color:var(--orange)}
+.queueitem{padding:10px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}.queueitem span{color:var(--mint);font-weight:700}
+.notice{background:#0b1b2e;border:1px solid #38536e;border-radius:12px;padding:12px;margin-top:12px;color:#c3d3e5;font-size:12px;line-height:1.5}
+footer{text-align:center;color:#748ba6;font-size:12px;padding:20px}
+@media(max-width:720px){.grid{grid-template-columns:1fr}.intro h1{font-size:21px}}
+</style></head>
+<body>
+<header><div class="logo">dona<span>siku</span></div><div class="pill">MEDIA SHARE DEMO</div></header>
+<main>
+<div class="intro"><h1>Kirim video untuk ditayangkan saat live</h1><p>Penonton dapat mengirim link YouTube bersama dukungan untuk kreator.</p></div>
+<div class="grid">
+<section>
+ <div class="panel">
+  <h2>LAYAR LIVE / MEDIA SHARE</h2>
+  <div class="screen" id="screen"><div class="placeholder"><div class="bigplay">▶</div><b>Video kiriman penonton akan tampil di sini</b><p class="small">Saat demo, video YouTube akan dimuat setelah tombol pratinjau ditekan.</p></div></div>
+  <div class="alert" id="alert"><strong id="alertName">Nama penyawer</strong><div id="alertMessage"></div></div>
+ </div>
+ <div class="panel"><h2>Antrean video</h2><div id="queue" class="small">Belum ada video dalam antrean.</div></div>
+</section>
+<aside class="panel">
+ <h2>Kirim dukungan + video</h2>
+ <label>Nama penyawer</label><input id="name" placeholder="Nama atau anonim">
+ <label>Nominal dukungan (Rp)</label><div class="amounts"><button onclick="setAmount(5000)">5.000</button><button onclick="setAmount(10000)">10.000</button><button onclick="setAmount(20000)">20.000</button></div><input id="money" type="number" min="1000" placeholder="Nominal lainnya" style="margin-top:8px">
+ <label>Link video YouTube</label><input id="url" placeholder="https://youtu.be/...">
+ <label>Pesan untuk kreator</label><textarea id="msg" placeholder="Semangat live-nya!"></textarea>
+ <button class="primary" onclick="submitDemo()">Uji kiriman video</button>
+ <div class="notice">Mode demo: tombol ini hanya mensimulasikan kiriman. Belum ada pembayaran sungguhan atau koneksi otomatis ke OBS. Untuk versi produksi, transaksi harus diverifikasi server sebelum video masuk antrean.</div>
+ <div class="small" style="margin-top:12px">Catatan keamanan: versi asli perlu filter durasi, moderasi link/video, tombol lewati, dan pembatasan konten agar streamer tidak dipaksa memutar video yang tidak pantas.</div>
+</aside>
+</div></main><footer>Donasiku · Demo Media Share</footer>
+<script>
+let queue=[];
+function setAmount(n){document.getElementById('money').value=n}
+function getId(raw){
+ try{
+  const u=new URL(raw.trim());
+  if(u.hostname==='youtu.be') return u.pathname.slice(1).split('/')[0];
+  if(u.hostname==='www.youtube.com'||u.hostname==='youtube.com'||u.hostname==='m.youtube.com'){
+   if(u.pathname==='/watch') return u.searchParams.get('v');
+   const p=u.pathname.split('/');
+   if(['embed','shorts','live'].includes(p[1])) return p[2];
+  }
+ }catch(e){}
+ return null;
+}
+function submitDemo(){
+ const name=document.getElementById('name').value.trim()||'Anonim';
+ const money=Number(document.getElementById('money').value);
+ const url=document.getElementById('url').value;
+ const id=getId(url);
+ const msg=document.getElementById('msg').value.trim()||'Semangat terus!';
+ if(!money||money<1000){alert('Masukkan nominal minimal Rp1.000 untuk demo.');return}
+ if(!id||!/^[\w-]{11}$/.test(id)){alert('Masukkan link video YouTube yang valid.');return}
+ queue.push({name,money,id,msg});
+ const q=document.getElementById('queue');q.innerHTML='';
+ queue.forEach((x,i)=>{const d=document.createElement('div');d.className='queueitem';d.innerHTML='<div>🎬 '+(i+1)+'. '+escapeHtml(x.name)+'</div><span>Rp'+x.money.toLocaleString('id-ID')+'</span>';q.appendChild(d)});
+ document.getElementById('alertName').textContent=name+' · Rp'+money.toLocaleString('id-ID');
+ document.getElementById('alertMessage').textContent='“'+msg+'”';
+ document.getElementById('alert').style.display='block';
+ document.getElementById('screen').innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+id+'?autoplay=0&rel=0" title="Video YouTube" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+</script></body></html>

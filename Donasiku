@@ -1,0 +1,287 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101b2b">
+<title>Donasiku</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;
+ background:#0b1220;
+ color:#f4f7fb;
+ font-family:Arial,sans-serif;
+}
+.container{
+ max-width:950px;
+ margin:auto;
+ padding:20px;
+}
+header{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ padding:15px 0 30px;
+}
+.logo{
+ font-size:28px;
+ font-weight:bold;
+}
+.logo span{color:#53e0c1}
+.tag{
+ color:#53e0c1;
+ border:1px solid #53e0c1;
+ padding:7px 12px;
+ border-radius:20px;
+ font-size:12px;
+}
+h1{font-size:40px}
+h1 span{color:#53e0c1}
+p{color:#9aabc0;line-height:1.6}
+.panel{
+ background:#142238;
+ border:1px solid #2a3d57;
+ border-radius:17px;
+ padding:20px;
+ margin-bottom:20px;
+}
+input,textarea{
+ width:100%;
+ padding:14px;
+ margin:7px 0 15px;
+ border-radius:10px;
+ border:1px solid #344b68;
+ background:#0b1728;
+ color:white;
+ font-size:16px;
+}
+textarea{min-height:85px}
+button{
+ padding:13px;
+ border:0;
+ border-radius:10px;
+ cursor:pointer;
+ font-weight:bold;
+}
+.amounts{
+ display:flex;
+ gap:9px;
+ flex-wrap:wrap;
+}
+.amount{
+ background:#243a53;
+ color:white;
+}
+.amount.active{
+ background:#53e0c1;
+ color:#06221f;
+}
+.primary{
+ width:100%;
+ background:#53e0c1;
+ color:#06221f;
+ margin-top:12px;
+}
+.player{
+ width:100%;
+ aspect-ratio:16/9;
+ background:#050a12;
+ border-radius:12px;
+ overflow:hidden;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ text-align:center;
+ color:#9aabc0;
+}
+.player iframe{
+ width:100%;
+ height:100%;
+ border:0;
+}
+.alert{
+ display:none;
+ background:#174b45;
+ padding:15px;
+ border-radius:10px;
+ margin-top:15px;
+}
+.item{
+ background:#0b1728;
+ padding:13px;
+ border-radius:10px;
+ margin-top:10px;
+ color:#dce7f2;
+}
+a{color:#53e0c1}
+small{color:#9aabc0}
+@media(max-width:600px){
+ h1{font-size:32px}
+ .container{padding:15px}
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header>
+ <div class="logo">dona<span>siku</span></div>
+ <div class="tag">CREATOR PLATFORM</div>
+</header>
+
+<h1>Dukung Kreator.<br>
+<span>Bagikan Semangat.</span></h1>
+
+<p>Kirim dukungan dan pesan kepada kreator favoritmu.</p>
+
+<div class="panel">
+ <h2>🎥 Media Share</h2>
+ <div class="player" id="player">
+  Video akan tampil di sini
+ </div>
+ <p id="videoFallback"></p>
+</div>
+
+<div class="panel">
+ <h2>💚 Kirim Dukungan</h2>
+
+ <label>Nama pendukung</label>
+ <input id="name" placeholder="Nama kamu">
+
+ <label>Pilih nominal</label>
+ <div class="amounts">
+  <button class="amount active" data-value="5000">Rp5.000</button>
+  <button class="amount" data-value="10000">Rp10.000</button>
+  <button class="amount" data-value="20000">Rp20.000</button>
+  <button class="amount" data-value="50000">Rp50.000</button>
+ </div>
+
+ <label>Pesan</label>
+ <textarea id="message" placeholder="Tulis pesan untuk kreator"></textarea>
+
+ <label>Link video YouTube (opsional)</label>
+ <input id="youtube" placeholder="https://youtu.be/...">
+
+ <button class="primary" onclick="sendDonation()">
+  Pratinjau Donasi
+ </button>
+
+ <div class="alert" id="alert"></div>
+</div>
+
+<div class="panel">
+ <h2>🔔 Aktivitas Dukungan</h2>
+ <div id="feed">
+  <p>Belum ada dukungan.</p>
+ </div>
+</div>
+
+<p style="text-align:center;font-size:12px">
+ Donasiku © 2026 — Demo
+</p>
+
+</div>
+
+<script>
+let nominal = 5000;
+
+document.querySelectorAll(".amount").forEach(button=>{
+ button.addEventListener("click",()=>{
+  document.querySelectorAll(".amount")
+   .forEach(b=>b.classList.remove("active"));
+
+  button.classList.add("active");
+  nominal = Number(button.dataset.value);
+ });
+});
+
+function getVideoID(link){
+ try{
+  const url = new URL(link);
+
+  if(url.hostname === "youtu.be"){
+   return url.pathname.slice(1).split("/")[0];
+  }
+
+  if(url.hostname.includes("youtube.com")){
+   if(url.pathname === "/watch"){
+    return url.searchParams.get("v");
+   }
+
+   const parts = url.pathname.split("/").filter(Boolean);
+
+   if(["embed","shorts","live"].includes(parts[0])){
+    return parts[1];
+   }
+  }
+ }catch(e){}
+
+ return null;
+}
+
+function sendDonation(){
+
+ const name =
+  document.getElementById("name").value.trim() || "Anonim";
+
+ const message =
+  document.getElementById("message").value.trim() || "Semangat terus!";
+
+ const link =
+  document.getElementById("youtube").value.trim();
+
+ const alertBox = document.getElementById("alert");
+
+ alertBox.style.display = "block";
+
+ alertBox.textContent =
+  name + " mendukung Rp" +
+  nominal.toLocaleString("id-ID") +
+  " — " + message;
+
+ const feed = document.getElementById("feed");
+
+ if(feed.querySelector("p")){
+  feed.innerHTML = "";
+ }
+
+ const item = document.createElement("div");
+ item.className = "item";
+ item.textContent =
+  name + " · Rp" +
+  nominal.toLocaleString("id-ID") +
+  " · " + message;
+
+ feed.prepend(item);
+
+ if(link){
+
+  const id = getVideoID(link);
+
+  if(id){
+
+   document.getElementById("player").innerHTML =
+    '<iframe src="https://www.youtube.com/embed/' +
+    encodeURIComponent(id) +
+    '?playsinline=1&rel=0" allowfullscreen></iframe>';
+
+   document.getElementById("videoFallback").innerHTML =
+    '<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=' +
+    encodeURIComponent(id) +
+    '">Buka video langsung di YouTube ↗</a>';
+
+  }else{
+   document.getElementById("player").textContent =
+    "Link YouTube tidak valid.";
+   document.getElementById("videoFallback").textContent = "";
+  }
+ }
+}
+</script>
+
+</body>
+</html>
